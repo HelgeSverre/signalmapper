@@ -262,7 +262,7 @@
                   on:click={() => toggleInputsCollapsed(device.id)}
                 >
                   <h4 class=" inline-block text-sm font-medium text-gray-700">Inputs</h4>
-                  <span>
+                  <span class="text-gray-400">
                     {#if device.inputsCollapsed}
                       <ChevronRight size={16} />
                     {:else}
@@ -271,7 +271,7 @@
                   </span>
                 </button>
 
-                {#if device.inputsCollapsed}
+                {#if !device.inputsCollapsed}
                   {#each device.inputs as port}
                     <button
                       type="button"
@@ -318,7 +318,7 @@
                   on:click={() => toggleOutputsCollapsed(device.id)}
                 >
                   <h4 class=" inline-block text-sm font-medium text-gray-700">Outputs</h4>
-                  <span>
+                  <span class="text-gray-400">
                     {#if device.outputsCollapsed}
                       <ChevronRight size={16} />
                     {:else}
@@ -327,7 +327,7 @@
                   </span>
                 </button>
 
-                {#if device.outputsCollapsed}
+                {#if !device.outputsCollapsed}
                   {#each device.outputs as port}
                     <button
                       type="button"
