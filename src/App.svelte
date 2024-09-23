@@ -2,10 +2,12 @@
   import { onMount } from "svelte";
   import { derived } from "svelte/store";
   import classNames from "classnames";
-  import { ALL_DEVICES, determineImpliedCable } from "./devices.js";
+  import { ALL_DEVICES, determineImpliedCable, DEVICE_TYPES } from "./devices.js";
   import mermaid from "mermaid";
   import { persistentStore } from "./utils.js";
-  import { ChevronDown, ChevronRight, Expand, Unplug, X } from "lucide-svelte";
+  import { Activity, ChevronDown, ChevronRight, Expand, Headphones, Unplug, Usb, X } from "lucide-svelte";
+  import { fetchDevicesFromJsonbin } from "./hosted.js";
+  import { Pulse, WaveSawtooth } from "phosphor-svelte";
 
   const devices = persistentStore("devices", []);
   const connections = persistentStore("connections", []);
@@ -13,7 +15,9 @@
   let searchTerm = "";
   let selectedPort = null;
 
-  $: filteredDevices = ALL_DEVICES.filter((device) => {
+  let availableDevices = [];
+
+  $: filteredDevices = availableDevices.filter((device) => {
     if (!searchTerm) return true;
     return device.name.toLowerCase().includes(searchTerm.trim().toLowerCase());
   });
@@ -30,7 +34,16 @@
   }
 
   function toggleInputsCollapsed(deviceId) {
-    devices.update((devs) => devs.map((d) => (d.id === deviceId ? { ...d, inputsCollapsed: !d.inputsCollapsed } : d)));
+    devices.update((devs) =>
+      devs.map((d) =>
+        d.id === deviceId
+          ? {
+              ...d,
+              inputsCollapsed: !d.inputsCollapsed,
+            }
+          : d,
+      ),
+    );
   }
 
   function toggleOutputsCollapsed(deviceId) {
@@ -194,6 +207,8 @@
         return "bg-blue-200";
       case "ADAT":
         return "bg-purple-200";
+      case "CV":
+        return "bg-slate-200";
       default:
         return "bg-gray-200";
     }
@@ -204,9 +219,17 @@
   let mermaidInitialized = false;
 
   onMount(() => {
+    availableDevices = ALL_DEVICES;
+    // TODO: Support loading devices from remote location in the future
+    // loadDevices();
+
     mermaid.initialize({ startOnLoad: false, theme: "default" });
     mermaidInitialized = true;
   });
+
+  async function loadDevices() {
+    availableDevices = (await fetchDevicesFromJsonbin()) || ALL_DEVICES;
+  }
 
   $: if (mermaidInitialized && $diagram) {
     renderDiagram();
@@ -288,7 +311,15 @@
                     >
                       <span class="flex flex-row items-center justify-between">
                         <span class="font-medium">{port.name}</span>
-                        <span>{port.portType}</span>
+
+                        <span class="inline-flex items-center justify-center gap-1">
+                          {#if port.type === "CV"}
+                            <WaveSawtooth size={16} class="opacity-20" />
+                          {:else if port.type === "USB"}
+                            <Usb size={16} class="opacity-20" />
+                          {/if}
+                          <span>{port.portType}</span>
+                        </span>
                       </span>
 
                       {#if port.description}
@@ -301,7 +332,9 @@
                         <div class="text-xs font-bold text-blue-800">
                           <span>{info.label}</span>
                           {#if info.impliedCable}
-                            <div class="font-medium text-gray-500">- {info.impliedCable}</div>
+                            <span class="inline-block font-normal italic">
+                              via {info.impliedCable}
+                            </span>
                           {/if}
                         </div>
                       {/each}
@@ -320,9 +353,9 @@
                   <h4 class=" inline-block text-sm font-medium text-gray-700">Outputs</h4>
                   <span class="text-gray-400">
                     {#if device.outputsCollapsed}
-                      <ChevronRight size={16} />
+                      <ChevronRight size={16} class="opacity-20" />
                     {:else}
-                      <ChevronDown size={16} />
+                      <ChevronDown size={16} class="opacity-20" />
                     {/if}
                   </span>
                 </button>
@@ -344,9 +377,16 @@
                     >
                       <span class="flex flex-row items-center justify-between">
                         <span class="font-medium">{port.name}</span>
-                        <span>{port.portType}</span>
-                      </span>
 
+                        <span class="inline-flex items-center justify-center gap-1">
+                          {#if port.type === "CV"}
+                            <WaveSawtooth size={16} class="opacity-20" />
+                          {:else if port.type === "USB"}
+                            <Usb size={16} class="opacity-20" />
+                          {/if}
+                          <span>{port.portType}</span>
+                        </span>
+                      </span>
                       {#if port.description}
                         <span class="block text-xs text-gray-700/80">
                           {port.description}
@@ -357,7 +397,9 @@
                         <div class="text-xs font-bold text-blue-800">
                           <span>{info.label}</span>
                           {#if info.impliedCable}
-                            <div class="font-medium text-gray-500">- {info.impliedCable}</div>
+                            <span class="inline-block font-normal italic">
+                              via {info.impliedCable}
+                            </span>
                           {/if}
                         </div>
                       {/each}
@@ -402,7 +444,13 @@
         <div class="mb-3 flex flex-row flex-wrap gap-1">
           {#each filteredDevices as data}
             <button
-              class="rounded bg-black px-2 py-1 text-xs font-medium text-white transition-colors duration-100 ease-in-out hover:bg-gray-700"
+              class={classNames(
+                "rounded bg-black px-2 py-1 text-xs font-medium text-white transition-colors duration-100 ease-in-out",
+                {
+                  "!bg-blue-800 hover:!bg-blue-700": data.type === DEVICE_TYPES.headphones,
+                  "!bg-purple-800 hover:!bg-purple-700": data.type === DEVICE_TYPES.speaker,
+                },
+              )}
               on:click={() => addDevice(data)}
             >
               {data.name}
