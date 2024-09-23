@@ -301,7 +301,7 @@
                         <div class="text-xs font-bold text-blue-800">
                           <span>{info.label}</span>
                           {#if info.impliedCable}
-                            <div class="ext-gray-500 font-medium">- {info.impliedCable}</div>
+                            <div class="font-medium text-gray-500">- {info.impliedCable}</div>
                           {/if}
                         </div>
                       {/each}
@@ -347,11 +347,17 @@
                         <span>{port.portType}</span>
                       </span>
 
+                      {#if port.description}
+                        <span class="block text-xs text-gray-700/80">
+                          {port.description}
+                        </span>
+                      {/if}
+
                       {#each getConnectionInfo(device.id, port.name, "output") as info}
                         <div class="text-xs font-bold text-blue-800">
                           <span>{info.label}</span>
                           {#if info.impliedCable}
-                            <div class="ext-gray-500 font-medium">- {info.impliedCable}</div>
+                            <div class="font-medium text-gray-500">- {info.impliedCable}</div>
                           {/if}
                         </div>
                       {/each}
