@@ -5,7 +5,7 @@
   import { ALL_DEVICES, determineImpliedCable } from "./devices.js";
   import mermaid from "mermaid";
   import { persistentStore } from "./utils.js";
-  import { Unplug, X } from "lucide-svelte";
+  import { ChevronDown, ChevronRight, Unplug, X } from "lucide-svelte";
 
   const devices = persistentStore("devices", []);
   const connections = persistentStore("connections", []);
@@ -18,9 +18,25 @@
     return device.name.toLowerCase().includes(searchTerm.trim().toLowerCase());
   });
 
-  function createDevice(data) {
-    const device = { ...data, id: Date.now() };
-    devices.update((devs) => [...devs, device]);
+  function addDevice(data) {
+    const newDevice = {
+      ...data,
+      id: Date.now(),
+      inputsCollapsed: false,
+      outputsCollapsed: false,
+    };
+
+    devices.update((devs) => [...devs, newDevice]);
+  }
+
+  function toggleInputsCollapsed(deviceId) {
+    devices.update((devs) => devs.map((d) => (d.id === deviceId ? { ...d, inputsCollapsed: !d.inputsCollapsed } : d)));
+  }
+
+  function toggleOutputsCollapsed(deviceId) {
+    devices.update((devs) =>
+      devs.map((d) => (d.id === deviceId ? { ...d, outputsCollapsed: !d.outputsCollapsed } : d)),
+    );
   }
 
   function handlePortClick(deviceId, clickedPort, portDirection) {
@@ -184,7 +200,7 @@
   }
 
   let diagramContainer;
-  let showDiagramCode = true;
+  let showDiagramCode = false;
   let mermaidInitialized = false;
 
   onMount(() => {
@@ -240,79 +256,108 @@
             </div>
 
             {#if Array.isArray(device?.inputs) && device.inputs?.length > 0}
-              <div class="p-2">
-                <h4 class="mb-3 text-sm font-medium text-gray-700">Inputs</h4>
-
-                {#each device.inputs as port}
-                  <button
-                    type="button"
-                    class={classNames(
-                      "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-100 ease-in-out",
-                      getPortTypeColor(port.type),
-                      {
-                        "border-transparent": !isPortSelected(device.id, port, "input"),
-                        "border-yellow-500": isPortSelected(device.id, port, "input"),
-                        "opacity-50": !isPortCompatible(port, "input"),
-                      },
-                    )}
-                    on:click={() => handlePortClick(device.id, port, "input")}
-                  >
-                    <span class="flex flex-row items-center justify-between">
-                      <span class="font-medium">{port.name}</span>
-                      <span>{port.portType}</span>
-                    </span>
-
-                    {#if port.description}
-                      <span class="block text-xs text-gray-700/80">
-                        {port.description}
-                      </span>
+              <div class="mb-2 px-2">
+                <button
+                  class="mb-2 flex w-full items-center justify-between py-1 text-sm font-medium text-gray-700"
+                  on:click={() => toggleInputsCollapsed(device.id)}
+                >
+                  <h4 class=" inline-block text-sm font-medium text-gray-700">Inputs</h4>
+                  <span>
+                    {#if device.inputsCollapsed}
+                      <ChevronRight size={16} />
+                    {:else}
+                      <ChevronDown size={16} />
                     {/if}
+                  </span>
+                </button>
 
-                    {#each getConnectionInfo(device.id, port.name, "input") as info}
-                      <div class="text-xs font-bold text-blue-800">
-                        <span>{info.label}</span>
-                        {#if info.impliedCable}
-                          <div class="ext-gray-500 font-medium">- {info.impliedCable}</div>
-                        {/if}
-                      </div>
-                    {/each}
-                  </button>
-                {/each}
+                {#if device.inputsCollapsed}
+                  {#each device.inputs as port}
+                    <button
+                      type="button"
+                      class={classNames(
+                        "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-100 ease-in-out",
+                        getPortTypeColor(port.type),
+                        {
+                          "border-transparent": !isPortSelected(device.id, port, "input"),
+                          "border-yellow-500": isPortSelected(device.id, port, "input"),
+                          "opacity-50": !isPortCompatible(port, "input"),
+                        },
+                      )}
+                      on:click={() => handlePortClick(device.id, port, "input")}
+                    >
+                      <span class="flex flex-row items-center justify-between">
+                        <span class="font-medium">{port.name}</span>
+                        <span>{port.portType}</span>
+                      </span>
+
+                      {#if port.description}
+                        <span class="block text-xs text-gray-700/80">
+                          {port.description}
+                        </span>
+                      {/if}
+
+                      {#each getConnectionInfo(device.id, port.name, "input") as info}
+                        <div class="text-xs font-bold text-blue-800">
+                          <span>{info.label}</span>
+                          {#if info.impliedCable}
+                            <div class="ext-gray-500 font-medium">- {info.impliedCable}</div>
+                          {/if}
+                        </div>
+                      {/each}
+                    </button>
+                  {/each}
+                {/if}
               </div>
             {/if}
 
             {#if Array.isArray(device?.outputs) && device.outputs?.length > 0}
-              <div class="p-2">
-                <h4 class="mb-3 text-sm font-medium text-gray-700">Outputs</h4>
-                {#each device.outputs as port}
-                  <button
-                    type="button"
-                    class={classNames(
-                      "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-100 ease-in-out",
-                      getPortTypeColor(port.type),
-                      {
-                        "border-transparent": !isPortSelected(device.id, port, "output"),
-                        "border-yellow-500": isPortSelected(device.id, port, "output"),
-                        "opacity-50": !isPortCompatible(port, "output"),
-                      },
-                    )}
-                    on:click={() => handlePortClick(device.id, port, "output")}
-                  >
-                    <span class="flex flex-row items-center justify-between">
-                      <span class="font-medium">{port.name}</span>
-                      <span>{port.portType}</span>
-                    </span>
+              <div class="mb-2 px-2">
+                <button
+                  class="mb-2 flex w-full items-center justify-between py-1 text-sm font-medium text-gray-700"
+                  on:click={() => toggleOutputsCollapsed(device.id)}
+                >
+                  <h4 class=" inline-block text-sm font-medium text-gray-700">Outputs</h4>
+                  <span>
+                    {#if device.outputsCollapsed}
+                      <ChevronRight size={16} />
+                    {:else}
+                      <ChevronDown size={16} />
+                    {/if}
+                  </span>
+                </button>
 
-                    {#each getConnectionInfo(device.id, port.name, "output") as info}
-                      <div class="text-xs font-bold text-blue-800">
-                        <span>{info.label}</span>
-                        {#if info.impliedCable}
-                          <div class="ext-gray-500 font-medium">- {info.impliedCable}</div>
-                        {/if}
-                      </div>
-                    {/each}
-                  </button>
-                {/each}
+                {#if device.outputsCollapsed}
+                  {#each device.outputs as port}
+                    <button
+                      type="button"
+                      class={classNames(
+                        "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-100 ease-in-out",
+                        getPortTypeColor(port.type),
+                        {
+                          "border-transparent": !isPortSelected(device.id, port, "output"),
+                          "border-yellow-500": isPortSelected(device.id, port, "output"),
+                          "opacity-50": !isPortCompatible(port, "output"),
+                        },
+                      )}
+                      on:click={() => handlePortClick(device.id, port, "output")}
+                    >
+                      <span class="flex flex-row items-center justify-between">
+                        <span class="font-medium">{port.name}</span>
+                        <span>{port.portType}</span>
+                      </span>
+
+                      {#each getConnectionInfo(device.id, port.name, "output") as info}
+                        <div class="text-xs font-bold text-blue-800">
+                          <span>{info.label}</span>
+                          {#if info.impliedCable}
+                            <div class="ext-gray-500 font-medium">- {info.impliedCable}</div>
+                          {/if}
+                        </div>
+                      {/each}
+                    </button>
+                  {/each}
+                {/if}
               </div>
             {/if}
           </div>
@@ -346,11 +391,11 @@
           class="w-full rounded border border-gray-200 bg-gray-50 p-2 text-sm"
         />
 
-        <div class="mt-2 flex flex-row flex-wrap gap-1">
+        <div class="mb-3 flex flex-row flex-wrap gap-1">
           {#each filteredDevices as data}
             <button
               class="rounded bg-black px-2 py-1 text-xs font-medium text-white transition-colors duration-100 ease-in-out hover:bg-gray-700"
-              on:click={() => createDevice(data)}
+              on:click={() => addDevice(data)}
             >
               {data.name}
             </button>
@@ -365,13 +410,13 @@
         </div>
 
         <div class="mb-4">
-          <div class="border border-gray-200 p-4">
-            {#if $diagram}
+          {#if $diagram}
+            <div class="border border-gray-200 p-4">
               <div bind:this={diagramContainer}></div>
-            {:else}
-              <p class="w-full text-center text-xs italic text-gray-400">Diagram will be rendered here</p>
-            {/if}
-          </div>
+            </div>
+          {:else}
+            <p class="text-sm text-gray-500">No devices connected yet</p>
+          {/if}
 
           {#if $diagram}
             <div class="mt-2 text-right">
