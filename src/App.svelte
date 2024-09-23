@@ -5,7 +5,7 @@
   import { ALL_DEVICES, determineImpliedCable } from "./devices.js";
   import mermaid from "mermaid";
   import { persistentStore } from "./utils.js";
-  import { ChevronDown, ChevronRight, Unplug, X } from "lucide-svelte";
+  import { ChevronDown, ChevronRight, Expand, Unplug, X } from "lucide-svelte";
 
   const devices = persistentStore("devices", []);
   const connections = persistentStore("connections", []);
@@ -413,8 +413,18 @@
 
         <div class="mb-4">
           {#if $diagram}
-            <div class="border border-gray-200 p-4">
-              <div bind:this={diagramContainer}></div>
+            <div class="relative">
+              <button
+                class="absolute right-0 top-0 p-2 text-xs font-semibold text-blue-500 hover:text-blue-700 focus:outline-none"
+                on:click={() => {
+                  diagramContainer.requestFullscreen();
+                }}
+              >
+                <Expand size="16" />
+              </button>
+              <div class="border border-gray-200 bg-white p-4">
+                <div class="flex h-full w-full items-center justify-center bg-white" bind:this={diagramContainer}></div>
+              </div>
             </div>
           {:else}
             <p class="text-sm text-gray-500">No devices connected yet</p>
