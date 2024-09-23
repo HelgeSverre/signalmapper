@@ -10,6 +10,10 @@
     "preview": "vite preview",
     "sort": "npx sort-package-json"
   },
+  "dependencies": {
+    "lucide-svelte": "^0.445.0",
+    "mermaid": "^11.2.1"
+  },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "autoprefixer": "^10.4.20",
@@ -25,9 +29,5 @@
     "svelte-routing": "^2.13.0",
     "tailwindcss": "^3.4.12",
     "vite": "^5.4.1"
-  },
-  "dependencies": {
-    "lucide-svelte": "^0.445.0",
-    "mermaid": "^11.2.1"
   }
 }
