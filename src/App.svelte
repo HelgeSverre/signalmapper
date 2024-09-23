@@ -2,6 +2,7 @@
   import { derived, writable } from "svelte/store";
   import classNames from "classnames";
   import { ALL_DEVICES } from "./devices.js";
+  import mermaid from "mermaid";
 
   const devices = writable([]);
   const connections = writable([]);
@@ -70,6 +71,30 @@
     };
   });
 
+  const diagram = derived([devices, connections], ([$devices, $connections]) => {
+  //   return `graph LR
+  // 1727051247987["Virus C"]
+  // 1727051250340["Behringer UMC1820"]
+  // 1727051261269["Behringer WASP Deluxe"]
+  // 1727051247987 -->|AUDIO| 1727051250340
+  // 1727051247987 -->|AUDIO| 1727051250340
+  // 1727051261269 -->|AUDIO| 1727051250340`;
+
+    let diagramCode = "graph LR\n";
+
+    $devices.forEach((device) => {
+      diagramCode += `  ${device.id}["${device.name}"]\n`;
+    });
+
+    $connections.forEach((connection) => {
+      const sourceDevice = $devices.find((d) => d.id === connection.sourceDeviceId);
+      const targetDevice = $devices.find((d) => d.id === connection.targetDeviceId);
+      diagramCode += `  ${sourceDevice.id} -->|${connection.portType}| ${targetDevice.id}\n`;
+    });
+
+    return diagramCode;
+  });
+
   $: isPortSelected = (deviceId, portType, portName, portDirection) => {
     return (
       selectedPort &&
@@ -99,80 +124,113 @@
         return "bg-gray-200";
     }
   }
+
+  let diagramContainer;
+  let showDiagramCode = true;
+
+  async function renderDiagram() {
+    const { svg } = await mermaid.render("mermaid", $diagram);
+    diagramContainer.innerHTML = svg;
+  }
+
+  $: diagram && renderDiagram();
 </script>
 
-<main class="bg-gray-50 p-4">
-  <h1 class="mb-4 text-center text-2xl font-bold">Audio Hookup Simulator</h1>
+<main class="flex h-screen flex-col bg-gray-50 md:flex-row">
+  <div class="w-2/3 p-4">
+    <h1 class="mb-4 text-center text-2xl font-bold">Audio Hookup Simulator</h1>
 
-  <div class="flex flex-wrap justify-center gap-4">
-    {#each $devices as device (device.id)}
-      <div class="w-80 rounded-lg border border-gray-200 bg-white p-3 shadow-md">
-        <h3 class="mb-1 text-lg font-semibold">{device.name}</h3>
-        <p class="mb-2 text-xs text-gray-600">{device.description}</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      {#each $devices as device (device.id)}
+        <div class="w-80 rounded-lg border border-gray-200 bg-white p-3">
+          <h3 class="mb-1 text-lg font-semibold">{device.name}</h3>
+          <p class="mb-2 text-xs text-gray-600">{device.description}</p>
 
-        <div class="mb-2">
-          <h4 class="mb-1 text-sm font-medium text-gray-700">Inputs:</h4>
-          {#each device.inputs as port}
-            <button
-              type="button"
-              class={classNames(
-                "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-200 ease-in-out",
-                getPortTypeColor(port.type),
-                {
-                  "border-transparent": !isPortSelected(device.id, port.type, port.name, "input"),
-                  "border-yellow-500": isPortSelected(device.id, port.type, port.name, "input"),
-                  "opacity-50": !isPortCompatible(port.type, "input"),
-                },
-              )}
-              on:click={() => handlePortClick(device.id, port.type, port.name, "input")}
-            >
-              <span class="font-medium">{port.name}</span> - {port.type} ({port.portType})
-              {#each $getConnectionInfo(device.id, port.name, "input") as info}
-                <div class="text-xs text-blue-600">
-                  {info}
-                </div>
-              {/each}
-            </button>
-          {/each}
+          <div class="mb-2">
+            <h4 class="mb-1 text-sm font-medium text-gray-700">Inputs:</h4>
+            {#each device.inputs as port}
+              <button
+                type="button"
+                class={classNames(
+                  "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-200 ease-in-out",
+                  getPortTypeColor(port.type),
+                  {
+                    "border-transparent": !isPortSelected(device.id, port.type, port.name, "input"),
+                    "border-yellow-500": isPortSelected(device.id, port.type, port.name, "input"),
+                    "opacity-50": !isPortCompatible(port.type, "input"),
+                  },
+                )}
+                on:click={() => handlePortClick(device.id, port.type, port.name, "input")}
+              >
+                <span class="font-medium">{port.name}</span> - {port.type} ({port.portType})
+                {#each $getConnectionInfo(device.id, port.name, "input") as info}
+                  <div class="text-xs text-blue-600">
+                    {info}
+                  </div>
+                {/each}
+              </button>
+            {/each}
+          </div>
+
+          <div>
+            <h4 class="mb-1 text-sm font-medium text-gray-700">Outputs:</h4>
+            {#each device.outputs as port}
+              <button
+                type="button"
+                class={classNames(
+                  "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-200 ease-in-out",
+                  getPortTypeColor(port.type),
+                  {
+                    "border-transparent": !isPortSelected(device.id, port.type, port.name, "output"),
+                    "border-yellow-500": isPortSelected(device.id, port.type, port.name, "output"),
+                    "opacity-50": !isPortCompatible(port.type, "output"),
+                  },
+                )}
+                on:click={() => handlePortClick(device.id, port.type, port.name, "output")}
+              >
+                <span class="font-medium">{port.name}</span> - {port.type} ({port.portType})
+                {#each $getConnectionInfo(device.id, port.name, "output") as info}
+                  <div class="text-xs text-blue-600">
+                    {info}
+                  </div>
+                {/each}
+              </button>
+            {/each}
+          </div>
         </div>
+      {/each}
+    </div>
 
-        <div>
-          <h4 class="mb-1 text-sm font-medium text-gray-700">Outputs:</h4>
-          {#each device.outputs as port}
-            <button
-              type="button"
-              class={classNames(
-                "mb-1 w-full cursor-pointer rounded border-2 p-1 text-left text-sm transition-colors duration-200 ease-in-out",
-                getPortTypeColor(port.type),
-                {
-                  "border-transparent": !isPortSelected(device.id, port.type, port.name, "output"),
-                  "border-yellow-500": isPortSelected(device.id, port.type, port.name, "output"),
-                  "opacity-50": !isPortCompatible(port.type, "output"),
-                },
-              )}
-              on:click={() => handlePortClick(device.id, port.type, port.name, "output")}
-            >
-              <span class="font-medium">{port.name}</span> - {port.type} ({port.portType})
-              {#each $getConnectionInfo(device.id, port.name, "output") as info}
-                <div class="text-xs text-blue-600">
-                  {info}
-                </div>
-              {/each}
-            </button>
-          {/each}
-        </div>
-      </div>
-    {/each}
+    <div class="mt-4 text-center">
+      {#each deviceData as data}
+        <button
+          class="mb-2 mr-2 rounded bg-blue-500 px-3 py-1 text-sm font-bold text-white transition-colors duration-200 hover:bg-blue-700"
+          on:click={() => createDevice(data)}
+        >
+          Add {data.name}
+        </button>
+      {/each}
+    </div>
   </div>
 
-  <div class="mt-4 text-center">
-    {#each deviceData as data}
-      <button
-        class="mb-2 mr-2 rounded bg-blue-500 px-3 py-1 text-sm font-bold text-white transition-colors duration-200 hover:bg-blue-700"
-        on:click={() => createDevice(data)}
-      >
-        Add {data.name}
-      </button>
-    {/each}
+  <div class="w-1/3 border-l border-gray-300 bg-white p-4">
+    <h2 class="mb-4 text-center text-xl font-bold">Connection Diagram</h2>
+    <div class="flex flex-col gap-4 rounded-lg bg-white">
+      <div>
+        <div bind:this={diagramContainer} class="border border-gray-200 p-4"></div>
+        <div class="mt-2 text-right">
+          <button
+            class="text-xs font-medium text-blue-500 hover:text-blue-700 focus:outline-none"
+            on:click={() => (showDiagramCode = !showDiagramCode)}
+          >
+            Show diagram code
+          </button>
+        </div>
+      </div>
+      {#if showDiagramCode}<div>
+          <pre class="max-h-60 overflow-auto border border-gray-200 p-4 font-mono text-xs">{$diagram}</pre>
+        </div>
+      {/if}
+    </div>
   </div>
 </main>

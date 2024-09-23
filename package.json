@@ -25,5 +25,8 @@
     "svelte-routing": "^2.13.0",
     "tailwindcss": "^3.4.12",
     "vite": "^5.4.1"
+  },
+  "dependencies": {
+    "mermaid": "^11.2.1"
   }
 }
