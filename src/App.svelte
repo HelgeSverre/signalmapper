@@ -235,9 +235,9 @@
   }
 </script>
 
-<main class="flex h-screen flex-col overscroll-y-contain">
-  <section class="flex h-full flex-1 flex-col bg-gray-50 md:flex-row">
-    <div class="w-full overflow-auto p-4">
+<main class="overscroll-y-contain md:flex md:h-screen md:flex-col">
+  <section class="flex h-full flex-1 flex-col-reverse bg-gray-50 md:flex-row">
+    <div class="w-full p-4 md:overflow-auto">
       <div class="grid grid-cols-1 justify-center gap-4 md:grid-cols-2 lg:grid-cols-4">
         {#each $devices as device (device.id)}
           <div class="w-auto rounded-lg border border-gray-200 bg-white">
@@ -365,7 +365,9 @@
       </div>
     </div>
 
-    <div class="flex w-1/3 flex-col gap-4 overflow-auto border-l border-gray-300 bg-white">
+    <div
+      class="flex w-full flex-col gap-4 border-b border-gray-200 bg-white md:w-1/3 md:overflow-auto md:border-l md:border-b-transparent"
+    >
       <nav class="flex flex-row items-center justify-between gap-2 bg-black px-4 py-1.5">
         <div class="flex flex-row items-center justify-start gap-2">
           <Unplug size="16" class="text-white" />
