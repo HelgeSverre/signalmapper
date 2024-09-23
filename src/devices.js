@@ -220,7 +220,7 @@ export const ALL_DEVICES = [
     ],
     outputs: [
       { type: "AUDIO", portType: "TS", name: "Main Output" },
-      { type: "MIDI", portType: "DIN", name: "MIDI THRU" },
+      { type: "MIDI", portType: "DIN", name: "MIDI Thru" },
     ],
   },
   {
@@ -234,7 +234,7 @@ export const ALL_DEVICES = [
     outputs: [
       { type: "AUDIO", portType: "TS", name: "Main Output (Low)" },
       { type: "AUDIO", portType: "TS", name: "Main Output (High)" },
-      { type: "MIDI", portType: "DIN", name: "MIDI THRU" },
+      { type: "MIDI", portType: "DIN", name: "MIDI Thru" },
     ],
   },
   {
@@ -275,6 +275,25 @@ export const ALL_DEVICES = [
     ],
   },
   {
+    name: "Novation Peak",
+    description: "8-voice Polyphonic Synthesizer",
+    type: DEVICE_TYPES.synthesizer,
+    inputs: [
+      { type: "USB", portType: "USB-B", name: "USB - Computer" },
+      { type: "MIDI", portType: "DIN", name: "MIDI In" },
+      { type: "AUDIO", portType: "TS", name: "Input", description: '1/4" TS jack for external audio input' },
+    ],
+    outputs: [
+      { type: "AUDIO", portType: "TRS", name: "Output 1 L/Mono", description: '1/4" TRS balanced output' },
+      { type: "AUDIO", portType: "TRS", name: "Output 1 R", description: '1/4" TRS balanced output' },
+      { type: "AUDIO", portType: "TRS", name: "Output 2 L", description: '1/4" TRS balanced output' },
+      { type: "AUDIO", portType: "TRS", name: "Output 2 R", description: '1/4" TRS balanced output' },
+      { type: "MIDI", portType: "DIN", name: "MIDI Out" },
+      { type: "MIDI", portType: "DIN", name: "MIDI Thru" },
+    ],
+  },
+
+  {
     name: "Thomann 10 Port USB 3.0 Hub",
     description: "10-Port USB 3.0 Hub",
     type: DEVICE_TYPES.usbHub,
@@ -293,6 +312,12 @@ export const ALL_DEVICES = [
       name: `USB 3.0 - Port ${i + 1}`,
       compatibleWith: ["USB-A", "USB-B", "USB-C"],
     })),
+  },
+  {
+    name: "MIDI to USB Adapter",
+    type: DEVICE_TYPES.audioInterface,
+    inputs: [{ type: "MIDI", portType: "DIN", name: "MIDI IN" }],
+    outputs: [{ type: "USB", portType: "USB-A", name: "USB - Computer" }],
   },
 ];
 

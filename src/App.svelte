@@ -264,14 +264,16 @@
       <div class="grid grid-cols-1 justify-center gap-4 md:grid-cols-2 lg:grid-cols-4">
         {#each $devices as device (device.id)}
           <div class="w-auto rounded-lg border border-gray-200 bg-white">
-            <div class="mb-2 flex w-full flex-row items-center justify-between gap-4 border-b border-gray-200 p-2">
+            <div class="mb-2 flex w-full flex-row items-start justify-between gap-4 border-b border-gray-200 p-2">
               <div>
                 <h3 class="text-sm font-semibold">{device.name}</h3>
-                <p class="text-xs text-gray-700">{device.description}</p>
+                {#if device.description}
+                  <p class="text-pretty text-xs text-gray-700">{device.description}</p>
+                {/if}
               </div>
 
               <button
-                class="text-xs text-red-500 hover:text-red-700 focus:outline-none"
+                class="flex items-center justify-center rounded p-0.5 text-xs text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                 on:click={() => removeDevice(device.id)}
               >
                 <X size="16" />
@@ -284,7 +286,7 @@
                   class="mb-2 flex w-full items-center justify-between py-1 text-sm font-medium text-gray-700"
                   on:click={() => toggleInputsCollapsed(device.id)}
                 >
-                  <h4 class=" inline-block text-sm font-medium text-gray-700">Inputs</h4>
+                  <h4 class="inline-block text-sm font-medium text-gray-700">Inputs</h4>
                   <span class="text-gray-400">
                     {#if device.inputsCollapsed}
                       <ChevronRight size={16} />
@@ -350,7 +352,7 @@
                   class="mb-2 flex w-full items-center justify-between py-1 text-sm font-medium text-gray-700"
                   on:click={() => toggleOutputsCollapsed(device.id)}
                 >
-                  <h4 class=" inline-block text-sm font-medium text-gray-700">Outputs</h4>
+                  <h4 class="inline-block text-sm font-medium text-gray-700">Outputs</h4>
                   <span class="text-gray-400">
                     {#if device.outputsCollapsed}
                       <ChevronRight size={16} class="opacity-20" />
