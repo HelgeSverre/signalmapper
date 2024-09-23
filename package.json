@@ -1,0 +1,29 @@
+{
+  "name": "synth-hookup",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "format": "npx prettier --write .",
+    "preview": "vite preview",
+    "sort": "npx sort-package-json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.1",
+    "autoprefixer": "^10.4.20",
+    "classnames": "^2.5.1",
+    "phosphor-svelte": "^2.0.1",
+    "pocketbase": "^0.21.5",
+    "postcss": "^8.4.47",
+    "prettier": "^3.3.3",
+    "prettier-plugin-svelte": "^3.2.6",
+    "prettier-plugin-tailwindcss": "^0.6.6",
+    "svelte": "^4.2.18",
+    "svelte-forms-lib": "^2.0.1",
+    "svelte-routing": "^2.13.0",
+    "tailwindcss": "^3.4.12",
+    "vite": "^5.4.1"
+  }
+}
