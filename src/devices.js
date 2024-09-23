@@ -2,7 +2,7 @@ export const ALL_DEVICES = [
   {
     name: "Virus C",
     description: "Virtual Analog Synthesizer",
-    type: "synth",
+    type: "synthesizer",
     inputs: [
       { type: "AUDIO", portType: "TRS", name: "Aux 1 L" },
       { type: "AUDIO", portType: "TRS", name: "Aux 1 R" },
@@ -60,7 +60,7 @@ export const ALL_DEVICES = [
   {
     name: "Virus TI2 Keyboard",
     description: "Virtual Analog Synthesizer with Keyboard",
-    type: "synth",
+    type: "synthesizer",
     inputs: [
       { type: "AUDIO", portType: "TRS", name: "Aux 1 L" },
       { type: "AUDIO", portType: "TRS", name: "Aux 1 R" },
@@ -69,7 +69,13 @@ export const ALL_DEVICES = [
       { type: "AUDIO", portType: "TRS", name: "Aux 3 L" },
       { type: "AUDIO", portType: "TRS", name: "Aux 3 R" },
       { type: "MIDI", portType: "DIN", name: "MIDI IN" },
-      { type: "USB", portType: "USB", name: "USB Audio IN" },
+      {
+        type: "USB",
+        portType: "USB-B",
+        name: "USB",
+        compatibleWith: ["USB-A", "USB-B", "USB-C"],
+        impliedCable: "USB A to B",
+      },
     ],
     outputs: [
       { type: "AUDIO", portType: "TRS", name: "Main Out L" },
@@ -80,7 +86,7 @@ export const ALL_DEVICES = [
   {
     name: "Virus TI Desktop",
     description: "Virtual Analog Desktop Synthesizer",
-    type: "synth",
+    type: "synthesizer",
     inputs: [
       { type: "AUDIO", portType: "TRS", name: "Aux 1 L" },
       { type: "AUDIO", portType: "TRS", name: "Aux 1 R" },
@@ -100,7 +106,7 @@ export const ALL_DEVICES = [
   {
     name: "Waldorf Blofeld",
     description: "Digital Wavetable Synthesizer",
-    type: "synth",
+    type: "synthesizer",
     inputs: [
       { type: "MIDI", portType: "DIN", name: "MIDI IN" },
       { type: "USB", portType: "USB", name: "USB Cable" },
@@ -113,7 +119,7 @@ export const ALL_DEVICES = [
   {
     name: "Virus Indigo",
     description: "Virtual Analog Synthesizer",
-    type: "synth",
+    type: "synthesizer",
     inputs: [
       { type: "AUDIO", portType: "TRS", name: "Input L/Mono" },
       { type: "AUDIO", portType: "TRS", name: "Input R" },
@@ -128,7 +134,7 @@ export const ALL_DEVICES = [
   {
     name: "Behringer WASP Deluxe",
     description: "Analog Synthesizer",
-    type: "synth",
+    type: "synthesizer",
     inputs: [
       { type: "AUDIO", portType: "TS", name: "Audio In" },
       { type: "MIDI", portType: "DIN", name: "MIDI IN" },
@@ -138,4 +144,62 @@ export const ALL_DEVICES = [
       { type: "MIDI", portType: "DIN", name: "MIDI OUT" },
     ],
   },
+  {
+    name: "Thomann 10 Port USB 3.0 Hub",
+    description: "10-Port USB 3.0 Hub",
+    type: "usb hub",
+    inputs: [
+      {
+        type: "USB",
+        portType: "USB-B",
+        name: "USB 3.0 Input",
+        compatibleWith: ["USB-A", "USB-B", "USB-C"],
+        impliedCable: "USB A to B",
+      },
+    ],
+    outputs: [
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 1" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 2" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 3" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 4" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 5" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 6" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 7" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 8" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 9" },
+      { type: "USB", portType: "USB-A", name: "USB 3.0 Port 10" },
+    ],
+  },
 ];
+
+// Updated connection creation function
+function createConnection(port1, port2) {
+  const sourcePort = port1.portDirection === "output" ? port1 : port2;
+  const targetPort = port1.portDirection === "input" ? port1 : port2;
+
+  const connection = {
+    sourceDeviceId: sourcePort.deviceId,
+    sourcePortName: sourcePort.portName,
+    targetDeviceId: targetPort.deviceId,
+    targetPortName: targetPort.portName,
+    portType: sourcePort.portType,
+    impliedCable: determineImpliedCable(sourcePort, targetPort),
+  };
+
+  connections.update((conns) => [...conns, connection]);
+}
+
+function determineImpliedCable(sourcePort, targetPort) {
+  if (sourcePort.type === "USB" && targetPort.type === "USB") {
+    if (sourcePort.portType === "USB-A" && targetPort.portType === "USB-B") {
+      return "USB A to B";
+    } else if (sourcePort.portType === "USB-A" && targetPort.portType === "USB-C") {
+      return "USB A to C";
+    } else if (sourcePort.portType === "USB-C" && targetPort.portType === "USB-B") {
+      return "USB C to B";
+    }
+    // Add more cases as needed
+  }
+
+  return "";
+}

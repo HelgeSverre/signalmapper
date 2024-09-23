@@ -127,13 +127,30 @@
 
   let diagramContainer;
   let showDiagramCode = true;
+  let mermaidInitialized = false;
 
-  async function renderDiagram() {
-    const { svg } = await mermaid.render("mermaid", $diagram);
-    diagramContainer.innerHTML = svg;
+  onMount(() => {
+    mermaid.initialize({ startOnLoad: false, theme: "default" });
+    mermaidInitialized = true;
+  });
+
+  $: if (mermaidInitialized && $diagram) {
+    renderDiagram();
   }
 
-  $: diagram && renderDiagram();
+  async function renderDiagram() {
+    try {
+      const { svg } = await mermaid.render("mermaid-diagram", $diagram);
+      if (diagramContainer) {
+    diagramContainer.innerHTML = svg;
+  }
+    } catch (error) {
+      console.error("Failed to render Mermaid diagram:", error);
+      if (diagramContainer) {
+        diagramContainer.innerHTML = "<p>Error rendering diagram</p>";
+      }
+    }
+  }
 </script>
 
 <main class="flex h-screen flex-col bg-gray-50 md:flex-row">
@@ -223,7 +240,7 @@
             class="text-xs font-medium text-blue-500 hover:text-blue-700 focus:outline-none"
             on:click={() => (showDiagramCode = !showDiagramCode)}
           >
-            Show diagram code
+            {showDiagramCode ? "Hide" : "Show"} diagram code
           </button>
         </div>
       </div>
