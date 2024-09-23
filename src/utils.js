@@ -25,3 +25,7 @@ export function persistentStore(key, initialValue = null) {
 
   return store;
 }
+
+export function generateID() {
+  return crypto.randomUUID();
+}

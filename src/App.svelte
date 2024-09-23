@@ -4,10 +4,10 @@
   import classNames from "classnames";
   import { ALL_DEVICES, determineImpliedCable, DEVICE_TYPES } from "./devices.js";
   import mermaid from "mermaid";
-  import { persistentStore } from "./utils.js";
-  import { Activity, ChevronDown, ChevronRight, Expand, Headphones, Unplug, Usb, X } from "lucide-svelte";
+  import { generateID, persistentStore } from "./utils.js";
+  import { ChevronDown, ChevronRight, Expand, Unplug, Usb, X } from "lucide-svelte";
   import { fetchDevicesFromJsonbin } from "./hosted.js";
-  import { Pulse, WaveSawtooth } from "phosphor-svelte";
+  import { WaveSawtooth } from "phosphor-svelte";
 
   const devices = persistentStore("devices", []);
   const connections = persistentStore("connections", []);
@@ -25,7 +25,7 @@
   function addDevice(data) {
     const newDevice = {
       ...data,
-      id: Date.now(),
+      id: generateID(),
       inputsCollapsed: false,
       outputsCollapsed: false,
     };
@@ -101,6 +101,7 @@
     const targetPort = port1.portDirection === "input" ? port1 : port2;
 
     const connection = {
+      id: generateID(),
       sourceDeviceId: sourcePort.deviceId,
       sourcePortName: sourcePort.name,
       targetDeviceId: targetPort.deviceId,
@@ -114,6 +115,10 @@
     connections.update((conns) => [...conns, connection]);
   }
 
+  function removeConnection(connectionId) {
+    connections.update((conns) => conns.filter((conn) => conn.id !== connectionId));
+  }
+
   $: getConnectionInfo = (deviceId, portName, portDirection) => {
     let connectionInfo = [];
 
@@ -121,10 +126,12 @@
       const incomingConnection = $connections.find(
         (c) => c.targetDeviceId === deviceId && c.targetPortName === portName,
       );
+
       if (incomingConnection) {
         const sourceDevice = $devices.find((d) => d.id === incomingConnection.sourceDeviceId);
 
         connectionInfo.push({
+          id: incomingConnection.id,
           label: `From ${incomingConnection.sourcePortName} on ${sourceDevice.name}`,
           name: incomingConnection.sourcePortName,
           device: sourceDevice.name,
@@ -138,6 +145,7 @@
       outgoingConnections.forEach((conn) => {
         const targetDevice = $devices.find((d) => d.id === conn.targetDeviceId);
         connectionInfo.push({
+          id: conn.id,
           label: `To ${conn.targetPortName} on ${targetDevice.name}`,
           name: conn.targetPortName,
           device: targetDevice.name,
@@ -225,6 +233,22 @@
 
     mermaid.initialize({ startOnLoad: false, theme: "default" });
     mermaidInitialized = true;
+
+    // Update stored devices with any new information from ALL_DEVICES
+    devices.update((storedDevices) => {
+      return storedDevices.map((storedDevice) => {
+        const updatedDevice = ALL_DEVICES.find((d) => d.name === storedDevice.name);
+        if (updatedDevice) {
+          return {
+            ...updatedDevice,
+            id: storedDevice.id || generateID(),
+            inputsCollapsed: storedDevice.inputsCollapsed,
+            outputsCollapsed: storedDevice.outputsCollapsed,
+          };
+        }
+        return storedDevice;
+      });
+    });
   });
 
   async function loadDevices() {
@@ -519,7 +543,7 @@
             on:click={resetAllConnections}
             class="text-xs font-semibold text-red-500 hover:text-red-700 focus:outline-none"
           >
-            Reset
+            Remove all
           </button>
         </div>
 
@@ -555,6 +579,12 @@
                   <div class="flex flex-col items-end text-right">
                     <span class="text-sm font-semibold">{targetDevice ? targetDevice.name : "Unknown Device"}</span>
                     <span class="text-xs text-gray-500">{connection.targetPortName} (Input)</span>
+                    <button
+                      on:click={() => removeConnection(connection.id)}
+                      class="mt-2 text-xs font-semibold text-red-500 hover:text-red-700 focus:outline-none"
+                    >
+                      Remove
+                    </button>
                   </div>
                 </div>
               </div>
