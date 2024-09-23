@@ -98,8 +98,10 @@ export const ALL_DEVICES = [
     ],
     outputs: [
       { type: "MIDI", portType: "DIN", name: "MIDI OUT" },
-      { type: "AUDIO", portType: "TRS", name: "Main Out L" },
-      { type: "AUDIO", portType: "TRS", name: "Main Out R" },
+      { type: "AUDIO", portType: "TRS", name: "Main Out 1/L" },
+      { type: "AUDIO", portType: "TRS", name: "Main Out 2/R" },
+      { type: "AUDIO", portType: "TRS", name: "Phones A", description: "Stereo Headphone Output" },
+      { type: "AUDIO", portType: "TRS", name: "Phones B", description: "Stereo Headphone Output" },
     ],
   },
   {
